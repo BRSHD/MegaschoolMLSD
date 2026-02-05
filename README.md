@@ -45,7 +45,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### API
+## API
 
 POST /api/analyze — загрузка изображения (multipart/form-data, file)
 
@@ -53,7 +53,7 @@ POST /api/describe — JSON от CV (для отладки)
 
 GET /health — статус
 
-### Docker
+## Docker
 
 Если используете Docker:
 
