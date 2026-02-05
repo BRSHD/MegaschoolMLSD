@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+megaschoolenv/
+models/
+cuda_bin/
+debug_outputs/
+_wheels/
+.env
+*.gguf

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Описание диаграммы</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="page">
+    
+
+    <section class="panel">
+      <label class="file-label">
+        <input id="fileInput" type="file" accept="image/png,image/jpeg" />
+        <span>Выбрать изображение</span>
+      </label>
+      <button id="analyzeBtn" class="primary">Распознать</button>
+      <div id="status" class="status">Готово</div>
+      <div id="fileInfo" class="file-info">Файл не выбран</div>
+    </section>
+
+    <section class="preview">
+      <h2>Предпросмотр</h2>
+      <div class="preview-box">
+        <img id="previewImage" alt="Предпросмотр изображения" />
+      </div>
+    </section>
+
+    <section class="output">
+      <h2>Результат</h2>
+      <pre id="outputText">Ожидание запроса...</pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

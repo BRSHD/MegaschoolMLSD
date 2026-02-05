@@ -1,0 +1,42 @@
+__pycache__/
+*.pyc
+.venv/
+.venv
+.pytest_cache/
+models/
+*.gguf
+.env
+cuda_bin/
+megaschoolenv/
+env/
+venv/
+
+# ML / CV weights and artifacts
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.safetensors
+*.onnx
+*.engine
+*.tflite
+*.npz
+*.npy
+
+# Common ML run/output dirs
+runs/
+wandb/
+mlruns/
+output/
+outputs/
+inference_results/
+results/
+logs/
+tmp/
+temp/
+cache/
+.cache/
+
+# Paddle caches/models
+.paddleocr/
+.paddlex/
