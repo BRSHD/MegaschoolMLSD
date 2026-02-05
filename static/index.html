@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
@@ -8,11 +8,9 @@
 </head>
 <body>
   <main class="page">
-    
-
     <section class="panel">
       <label class="file-label">
-        <input id="fileInput" type="file" accept="image/png,image/jpeg" />
+        <input id="fileInput" type="file" accept="image/png,image/jpeg,image/svg+xml" />
         <span>Выбрать изображение</span>
       </label>
       <button id="analyzeBtn" class="primary">Распознать</button>
@@ -29,10 +27,12 @@
 
     <section class="output">
       <h2>Результат</h2>
-      <pre id="outputText">Ожидание запроса...</pre>
+      <div id="outputTable" class="table-wrap">
+        <div class="output-empty">Ожидание запроса...</div>
+      </div>
     </section>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=2" defer></script>
 </body>
 </html>

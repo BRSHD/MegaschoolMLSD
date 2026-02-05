@@ -18,3 +18,4 @@ paddlepaddle-gpu==2.6.2
 shapely
 pyclipper
 Pillow
+cairosvg

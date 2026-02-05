@@ -9,7 +9,7 @@ import time
 from typing import Any, Dict
 
 from fastapi import Body, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 
@@ -98,7 +98,46 @@ def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
-def _generate_description(diagram: Diagram) -> str:
+def _description_to_rows(text: str) -> list[Dict[str, Any]]:
+    rows: list[Dict[str, Any]] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        match = re.match(r"^(\d+(?:\.\d+)*)(?:[.)-])\s*(.*)$", line)
+        if not match:
+            continue
+        num = match.group(1)
+        content = match.group(2).strip()
+        if content.endswith("."):
+            content = content[:-1].rstrip()
+        actor = None
+        actor_match = re.search(r"\(исполнитель:\s*([^)]+)\)\s*$", content, flags=re.IGNORECASE)
+        if actor_match:
+            actor = actor_match.group(1).strip()
+            content = content[: actor_match.start()].rstrip()
+        lowered = content.lower()
+        if lowered.startswith("условие"):
+            kind = "condition"
+        elif lowered.startswith("если:"):
+            kind = "branch"
+        else:
+            kind = "step"
+        rows.append({"num": num, "text": content, "actor": actor, "kind": kind})
+    return rows
+
+
+def _svg_to_png(data: bytes) -> bytes:
+    try:
+        import cairosvg
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError(
+            "SVG conversion requires cairosvg. Install it with: pip install cairosvg"
+        ) from exc
+    return cairosvg.svg2png(bytestring=data)
+
+
+def _generate_description(diagram: Diagram) -> Dict[str, Any]:
     if not diagram.nodes:
         raise ValueError("Diagram has no nodes")
 
@@ -114,13 +153,22 @@ def _generate_description(diagram: Diagram) -> str:
     raw_text = model.generate(prompt, max_tokens=max_tokens, temperature=temperature, top_p=top_p)
     cleaned = _postprocess_output(raw_text)
     if _looks_like_prompt_echo(cleaned) or _looks_unrelated(cleaned, steps):
-        return _fallback_description(graph, steps)
+        cleaned = _fallback_description(graph, steps)
     if _needs_conditions(steps) and "\u0435\u0441\u043b\u0438:" not in cleaned.lower():
-        return _fallback_description(graph, steps)
-    return cleaned
+        cleaned = _fallback_description(graph, steps)
+
+    rows = _description_to_rows(cleaned)
+    has_gateway = any(step.type.lower() == "gateway" for step in steps)
+    if not has_gateway and any(row.get("kind") in {"condition", "branch"} for row in rows):
+        cleaned = _fallback_description(graph, steps)
+        rows = _description_to_rows(cleaned)
+    if not rows:
+        cleaned = _fallback_description(graph, steps)
+        rows = _description_to_rows(cleaned)
+    return {"text": cleaned, "rows": rows}
 
 
-async def _generate_async(diagram: Diagram) -> str:
+async def _generate_async(diagram: Diagram) -> Dict[str, Any]:
     return await asyncio.to_thread(_generate_description, diagram)
 
 
@@ -238,8 +286,8 @@ def _fallback_description(graph, steps) -> str:
     return format_description(graph, steps)
 
 
-@app.post("/api/describe", response_class=PlainTextResponse)
-async def describe_endpoint(diagram: Diagram = Body(...)) -> str:
+@app.post("/api/describe")
+async def describe_endpoint(diagram: Diagram = Body(...)) -> Dict[str, Any]:
     timeout = float(os.getenv("MAX_REQUEST_SECONDS", "20"))
     try:
         llm_start = time.perf_counter()
@@ -255,24 +303,31 @@ async def describe_endpoint(diagram: Diagram = Body(...)) -> str:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.post("/api/analyze", response_class=PlainTextResponse)
-async def analyze_endpoint(file: UploadFile = File(...)) -> str:
+@app.post("/api/analyze")
+async def analyze_endpoint(file: UploadFile = File(...)) -> Dict[str, Any]:
     if not file.filename:
         raise HTTPException(status_code=400, detail="File is required")
 
     _, ext = os.path.splitext(file.filename.lower())
-    if ext not in {".png", ".jpg", ".jpeg"}:
+    if ext not in {".png", ".jpg", ".jpeg", ".svg"}:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
     temp_path = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        content = await file.read()
+        suffix = ext
+        if ext == ".svg":
+            try:
+                content = _svg_to_png(content)
+            except RuntimeError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            suffix = ".png"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             temp_path = tmp.name
-            content = await file.read()
             tmp.write(content)
         timeout = float(os.getenv("MAX_REQUEST_SECONDS", "20"))
 
-        async def _process() -> str:
+        async def _process() -> Dict[str, Any]:
             cv_start = time.perf_counter()
             cv_json: Dict[str, Any] = await _run_cv_async(temp_path)
             cv_ms = int((time.perf_counter() - cv_start) * 1000)

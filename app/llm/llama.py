@@ -81,7 +81,7 @@ def get_model() -> object:
             return _MODEL
 
         model_path = os.getenv("LLAMA_MODEL_PATH", os.path.join("models", "tinyllama.gguf"))
-        n_ctx = int(os.getenv("LLAMA_CTX", "1024"))
+        n_ctx = int(os.getenv("LLAMA_CTX", "4096"))
         n_threads = int(os.getenv("LLAMA_THREADS", str(os.cpu_count() or 4)))
         gpu_only = os.getenv("GPU_ONLY", "1") == "1"
         require_gpu = os.getenv("LLAMA_REQUIRE_GPU", "1") == "1" or gpu_only

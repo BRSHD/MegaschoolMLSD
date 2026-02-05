@@ -33,4 +33,6 @@ def test_describe_endpoint():
     client = TestClient(app)
     response = client.post("/api/describe", json=_sample_diagram())
     assert response.status_code == 200
-    assert response.text.strip()
+    payload = response.json()
+    assert isinstance(payload, dict)
+    assert payload.get("rows")

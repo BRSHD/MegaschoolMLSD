@@ -136,15 +136,57 @@ body {
   font-size: 20px;
 }
 
-#outputText {
-  white-space: pre-wrap;
-  font-size: 15px;
-  line-height: 1.5;
-  margin: 0;
+.table-wrap {
   background: #f7f8fc;
   padding: 16px;
   border-radius: 12px;
   min-height: 140px;
+  overflow-x: auto;
+}
+
+.output-empty {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(31, 42, 64, 0.08);
+}
+
+.result-table th,
+.result-table td {
+  border: 1px solid #dde3ee;
+  padding: 10px 12px;
+  vertical-align: top;
+}
+
+.result-table th {
+  background: #eef3fa;
+  font-weight: 600;
+  text-align: left;
+}
+
+.result-table .num-cell {
+  width: 56px;
+  text-align: center;
+  font-weight: 600;
+  color: #1f2a3d;
+}
+
+.condition-row td {
+  background: #eef7ff;
+  font-weight: 600;
+}
+
+.branch-row td {
+  background: #f9fbff;
 }
 
 @media (max-width: 720px) {
